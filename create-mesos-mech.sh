@@ -1,0 +1,62 @@
+#!/bin/sh
+if test -z $REMOTE_PORT; then
+  REMOTE_PORT=5050
+fi
+
+if test -z $REMOTE_HOST; then
+  REMOTE_HOST=127.0.0.1
+fi
+
+if test -z $LOCAL_PORT; then
+  LOCAL_PORT=5050
+fi
+
+if test -z $TUNNEL_HOST; then
+  TUNNEL_HOST=$REMOTE_HOST
+fi
+
+if test -z $LOCAL_HOST; then
+  LOCAL_HOST_STR=
+else
+  LOCAL_HOST_STR=$LOCAL_HOST
+fi
+
+if test -z $IMAGE; then
+  IMAGE="2b171e93f07c4903bcad35bda10acf22__CoreOS-Stable-647.2.0"
+fi
+
+if test -z $REGION; then
+  REGION="West Europe"
+fi
+
+if test -z $SIZE; then
+  SIZE="Small"
+fi
+
+if test -z $USER; then
+  USER="yoda"
+fi
+
+if test -z $CERT_FILE; then
+  CERT_FILE="resources/ssh/try.pem"
+fi
+
+if test -z $CLOUD_CONF; then
+  CLOUD_CONF="resources/cloud-config/mesos-standard.yaml"
+fi
+
+if test "$1" == "up"; then
+  echo azure vm create $NAME $IMAGE \
+  -l \"$REGION\" \
+  --vm-size \"$SIZE\" \
+  --no-ssh-password \
+  --ssh-cert=$CERT_FILE \
+  --ssh=22 \
+  --custom-data=$CLOUD_CONF \
+  -g $USER 
+  #-p \"The force 1 use must\\\!\" \
+elif test "$1" == "down"; then
+  azure vm delete $NAME
+else
+  echo "Usage: [LOCAL_PORT=?] [USER=?] [REMOTE_HOST=?] [REMOTE_PORT=?] [TUNNEL_HOST=?] [CERT_FILE=?] $0 (up|down)"
+fi

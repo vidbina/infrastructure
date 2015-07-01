@@ -1,0 +1,32 @@
+#cloud-config
+
+coreos:
+  units:
+    - name: zookeeper.service
+      command: start
+      content: |
+        [Unit]
+        Description=Zookeeper
+        Author=David Asabina <david@supr.nu>
+        After=docker.service
+    
+        [Service]
+        Restart=always
+        ExecStart=/usr/bin/docker run -d -e SERVER_ID=1 -e ADDITIONAL_ZOOKEEPER_1=server.1=$private_ip:2888:3888 -e ADDITIONAL_ZOOKEEPER_2=server.2=$private_ip:2888:3888 -e ADDITIONAL_ZOOKEEPER_3=server.3=$private_ip:2888:3888 -p 2181:2181 -p 2888:2888 -p 3888:3888 garland/zookeeper --name zookeeper
+        ExecStop=/usr/bin/docker stop -t 2 zookeeper
+    - name: mesos-master.service
+      command: start
+      content: |
+        [Unit]
+        Description=Mesos Master
+        Author=David Asabina <david@supr.nu>
+        After=zookeeper.service
+  
+        [Service]
+        Restart=always
+        ExecStart=/usr/bin/docker run --net="host" -p 5050:5050 -e "MESOS_HOSTNAME=$private_ip" -e "MESOS_IP=$private_ip" -e "MESOS_ZK=zk://$private_ip:2181/mesos" -e "MESOS_PORT=5050" -e "MESOS_LOG_DIR=/var/log/mesos" -e "MESOS_QUORUM=1" -e "MESOS_REGISTRY=in_memory" -e "MESOS_WORK_DIR=/var/lib/mesos" -d garland/mesosphere-docker-mesos-master --name mesos-master
+        ExecStop=/usr/bin/docker stop mesos-master
+write_files:
+  - path: /etc/sudoers.d/waagent
+    content: |
+      yoda ALL = (ALL) NOPASSWD: ALL
