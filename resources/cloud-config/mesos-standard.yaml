@@ -12,8 +12,8 @@ coreos:
     
         [Service]
         Restart=always
-        ExecStart=/usr/bin/docker run -d -e SERVER_ID=1 -e ADDITIONAL_ZOOKEEPER_1=server.1=$private_ip:2888:3888 -e ADDITIONAL_ZOOKEEPER_2=server.2=$private_ip:2888:3888 -e ADDITIONAL_ZOOKEEPER_3=server.3=$private_ip:2888:3888 -p 2181:2181 -p 2888:2888 -p 3888:3888 garland/zookeeper --name zookeeper
-        ExecStop=/usr/bin/docker stop -t 2 zookeeper
+        ExecStart=/usr/bin/docker run --name zookeeper -p 2181:2181 -p 2888:2888 -p 3888:3888 garland/zookeeper
+        ExecStop=/usr/bin/docker rm zookeeper
     - name: mesos-master.service
       command: start
       content: |
@@ -24,8 +24,32 @@ coreos:
   
         [Service]
         Restart=always
-        ExecStart=/usr/bin/docker run --net="host" -p 5050:5050 -e "MESOS_HOSTNAME=$private_ip" -e "MESOS_IP=$private_ip" -e "MESOS_ZK=zk://$private_ip:2181/mesos" -e "MESOS_PORT=5050" -e "MESOS_LOG_DIR=/var/log/mesos" -e "MESOS_QUORUM=1" -e "MESOS_REGISTRY=in_memory" -e "MESOS_WORK_DIR=/var/lib/mesos" -d garland/mesosphere-docker-mesos-master --name mesos-master
-        ExecStop=/usr/bin/docker stop mesos-master
+        ExecStart=/usr/bin/docker run --name mesos-master --net="host" -p 5050:5050 -e "MESOS_HOSTNAME=$private_ipv4" -e "MESOS_IP=$private_ipv4" -e "MESOS_ZK=zk://$private_ipv4:2181/mesos" -e "MESOS_PORT=5050" -e "MESOS_LOG_DIR=/var/log/mesos" -e "MESOS_QUORUM=1" -e "MESOS_REGISTRY=in_memory" -e "MESOS_WORK_DIR=/var/lib/mesos" garland/mesosphere-docker-mesos-master
+        ExecStop=/usr/bin/docker rm mesos-master
+    - name: marathon.service
+      command: start
+      content: |
+        [Unit]
+        Description=Marathon
+        Author=David Asabina <david@supr.nu>
+        After=mesos-master.service
+  
+        [Service]
+        Restart=always
+        ExecStart=/usr/bin/docker run --name marathon -p 8080:8080 garland/mesosphere-docker-marathon --master zk://$private_ipv4:2181/mesos --zk zk://$private_ipv4:2181/marathon
+        ExecStop=/usr/bin/docker rm marathon
+    - name: mesos-slave.service
+      command: start
+      content: |
+        [Unit]
+        Description=Mesos Slave
+        Author=David Asabina <david@supr.nu>
+        After=marathon.service
+  
+        [Service]
+        Restart=always
+        ExecStart=/usr/bin/docker run --name mesos-slave --entrypoint="mesos-slave" -e "MESOS_MASTER=zk://$private_ipv4:2181/mesos" -e "MESOS_LOG_DIR=/var/log/mesos" -e "MESOS_LOGGING_LEVEL=INFO" garland/mesosphere-docker-mesos-master:latest
+        ExecStop=/usr/bin/docker rm mesos-slave
 write_files:
   - path: /etc/sudoers.d/waagent
     content: |
