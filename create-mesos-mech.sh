@@ -26,7 +26,8 @@ else
 fi
 
 if test -z $IMAGE; then
-  IMAGE="2b171e93f07c4903bcad35bda10acf22__CoreOS-Stable-647.2.0"
+  #IMAGE="2b171e93f07c4903bcad35bda10acf22__CoreOS-Stable-647.2.0"
+  IMAGE="CoreOS:CoreOS:Stable:723.3.0"
 fi
 
 if test -z $REGION; then
@@ -65,7 +66,7 @@ if test "$1" == "up"; then
     --name $NAME \
     --location "$REGION" \
     --os-type Linux \
-    --image-name $IMAGE \
+    --image-urn $IMAGE \
     --ssh-publickey-pem-file $CERT_FILE \
     --admin-username $USER \
     --vm-size $SIZE \
