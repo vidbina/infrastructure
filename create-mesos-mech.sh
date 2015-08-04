@@ -3,6 +3,10 @@ if test -z $REMOTE_PORT; then
   REMOTE_PORT=5050
 fi
 
+if test -z $GROUP; then
+  GROUP=mesos-sandbox
+fi
+
 if test -z $REMOTE_HOST; then
   REMOTE_HOST=127.0.0.1
 fi
@@ -45,18 +49,33 @@ if test -z $CLOUD_CONF; then
   CLOUD_CONF="resources/cloud-config/mesos-standard.yaml"
 fi
 
+if test -z $VNET; then
+  VNET="sandbox-vnet"
+fi
+
+if test -z $VNET_SUBNET; then
+  SUBNET="initial-sandbox-subnet"
+fi
+
 if test "$1" == "up"; then
-  echo azure vm create $NAME $IMAGE \
-  -l \"$REGION\" \
-  --vm-size \"$SIZE\" \
-  --no-ssh-password \
-  --ssh-cert=$CERT_FILE \
-  --ssh=22 \
-  --custom-data=$CLOUD_CONF \
-  -g $USER 
-  #-p \"The force 1 use must\\\!\" \
+  #azure config mode arm
+  #echo azure vm create -g $GROUP -n $NAME -l \"$REGION\" -y Linux -q $IMAGE -M $CERT_FILE -u $USER -z $SIZE
+  set -x
+  azure vm create --resource-group $GROUP \
+    --name $NAME \
+    --location "$REGION" \
+    --os-type Linux \
+    --image-name $IMAGE \
+    --ssh-publickey-pem-file $CERT_FILE \
+    --admin-username $USER \
+    --vm-size $SIZE \
+    --nic-name $NAME-nic-a \
+    --vnet-name "$VNET" \
+    --vnet-subnet-name "$SUBNET" \
+    $EXTRA
+  set +x
 elif test "$1" == "down"; then
-  azure vm delete $NAME
+  azure vm delete -n $NAME -g $GROUP
 else
   echo "Usage: [LOCAL_PORT=?] [USER=?] [REMOTE_HOST=?] [REMOTE_PORT=?] [TUNNEL_HOST=?] [CERT_FILE=?] $0 (up|down)"
 fi
