@@ -48,7 +48,7 @@ coreos:
   
         [Service]
         Restart=always
-        ExecStart=/usr/bin/docker run --name mesos-slave --entrypoint="mesos-slave" -v "/var/run/docker.sock:/var/run/docker.sock" -v "/usr/bin/docker:/usr/bin/docker" -v "/lib64:/lib64" -e "MESOS_MASTER=zk://$private_ipv4:2181/mesos" -e "MESOS_LOG_DIR=/var/log/mesos" -e "MESOS_LOGGING_LEVEL=INFO" garland/mesosphere-docker-mesos-master:latest
+        ExecStart=/usr/bin/docker run --name mesos-slave -v "/var/run/docker.sock:/var/run/docker.sock" -v "/usr/bin/docker:/usr/bin/docker" -e "MESOS_MASTER=zk://$private_ipv4:2181/mesos" -e "MESOS_LOG_DIR=/var/log/mesos" -e "MESOS_LOGGING_LEVEL=INFO" suprnovae/mesos-muscle:experimental
         ExecStop=/usr/bin/docker rm mesos-slave
 write_files:
   - path: /etc/sudoers.d/waagent
