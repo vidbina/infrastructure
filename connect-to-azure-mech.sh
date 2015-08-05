@@ -17,10 +17,8 @@ if test -z $KEY_FILE; then
 fi
 
 if test "$1" == "up"; then
-  ssh -i $KEY_FILE $USER@$(azure vm show $MECH -g $GROUP \
-    | grep "Public IP address" \
-    | ./extract_public_ip_for_mech.awk \
-    | sed -e 's_:__g')
+  source helpers/ip_for_azure_mech.sh
+  ssh -i $KEY_FILE $USER@$(ip_for_azure_mech)
 elif test "$1" == "down"; then
   echo "N/A"
 else
