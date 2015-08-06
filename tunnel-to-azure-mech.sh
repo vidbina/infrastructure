@@ -22,8 +22,8 @@ else
   LOCAL_HOST_STR=$LOCAL_HOST
 fi
 
-if test -z $CERT_FILE; then
-  CERT_FILE="resources/ssh/try.key"
+if test -z $KEY; then
+  KEY="resources/ssh/try.key"
 fi
 
 if test "$1" == "up"; then
@@ -41,10 +41,10 @@ if test "$1" == "up"; then
   
   AZURE_MECH_IP=$(ip_for_azure_mech)
   REMOTE_HOST=$AZURE_MECH_IP
-  ssh -i $CERT_FILE -f -nNT -L $LOCAL_HOST_STR$LOCAL_PORT:$REMOTE_HOST:$REMOTE_PORT $USER@$AZURE_MECH_IP
+  ssh -i $KEY-f -nNT -L $LOCAL_HOST_STR$LOCAL_PORT:$REMOTE_HOST:$REMOTE_PORT $USER@$AZURE_MECH_IP
 elif test "$1" == "down"; then
   #kill -3 $(ps aux | grep -E 'ssh.*google.' | grep -F $LOCAL_PORT:$REMOTE_HOST:$REMOTE_PORT | grep -F $USER@$TUNNEL_HOST | grep -Fv 'grep' | awk '{print $2}')
   kill -3 $(ps aux | grep -F $LOCAL_PORT:$REMOTE_HOST:$REMOTE_PORT | grep -F $USER@$(ip_for_azure_mech) | grep -Fv 'grep' | awk '{print $2}')
 else
-  echo "Usage: [LOCAL_PORT=?] [USER=?] [REMOTE_HOST=?] [REMOTE_PORT=?] [TUNNEL_HOST=?] [CERT_FILE=?] $0 (up|down)"
+  echo "Usage: [LOCAL_PORT=?] [USER=?] [REMOTE_HOST=?] [REMOTE_PORT=?] [TUNNEL_HOST=?] [KEY=?] $0 (up|down)"
 fi
