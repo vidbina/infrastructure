@@ -41,7 +41,7 @@ if test "$1" == "up"; then
   
   AZURE_MECH_IP=$(ip_for_azure_mech)
   REMOTE_HOST=$AZURE_MECH_IP
-  ssh -i $KEY-f -nNT -L $LOCAL_HOST_STR$LOCAL_PORT:$REMOTE_HOST:$REMOTE_PORT $USER@$AZURE_MECH_IP
+  ssh -i $KEY -f -nNT -L $LOCAL_HOST_STR$LOCAL_PORT:$REMOTE_HOST:$REMOTE_PORT $USER@$AZURE_MECH_IP
 elif test "$1" == "down"; then
   #kill -3 $(ps aux | grep -E 'ssh.*google.' | grep -F $LOCAL_PORT:$REMOTE_HOST:$REMOTE_PORT | grep -F $USER@$TUNNEL_HOST | grep -Fv 'grep' | awk '{print $2}')
   kill -3 $(ps aux | grep -F $LOCAL_PORT:$REMOTE_HOST:$REMOTE_PORT | grep -F $USER@$(ip_for_azure_mech) | grep -Fv 'grep' | awk '{print $2}')
