@@ -2,6 +2,9 @@
 
 ## Create VM
 
+Create a VM and assign to it a public IP address (making it accessible from the
+internet):
+
 ```bash
 USER=yoda \
 NAME=tie-figher \
@@ -10,6 +13,29 @@ GROUP=jedi-sandbox \
 CERT_FILE=resources/ssh/yoda.pem \
 EXTRA="--public-ip-addr sandbox-addr -C resource/cloud-config/mesos-standard.yml" \
 ./create-azure-mech.sh up
+```
+
+Create a VM and assign to it a NIC that may already be configured to use a 
+given Public IP address. Note that assigning a NIC attached to a public IP 
+address may change the address.
+
+```bash
+USER=yoda \
+NAME=tie-figher \
+SIZE=Standard_A0 \
+GROUP=jedi-sandbox \
+CERT_FILE=resources/ssh/yoda.pem \
+EXTRA="--nic-name=gateway-nic --custom-data=resources/cloud-config/mesos-standard.yaml" \
+./create-mesos-mech.sh up
+```
+
+**NOTE**: Apparently having a public address in this context means that you 
+have the privilege of assigning one, but once you reassign the NIC (attach it 
+to a different VM) the address may change. Still need to figure out this 
+observation is correct.
+
+```bash
+azure network public-ip list -g jedi-sandbox
 ```
 
 ## Connect to VM
@@ -73,3 +99,8 @@ Enter the container namespace:
 ```bash
 sudo nsenter --target $PID --mount --uts --ipc --net --pid
 ```
+
+# Todo
+
+ - [ ] Figure out if public IP addr are changed on NIC reassignment
+ - [ ] Figure out how to use Azure LB in combination with Mesos services
