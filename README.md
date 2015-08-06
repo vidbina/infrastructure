@@ -40,6 +40,10 @@ azure network public-ip list -g jedi-sandbox
 
 ## Connect to VM
 
+In order to setup a connection to a publicly visible VM (visible from the 
+internet through a public IP address) one may run the following command, 
+specifying the machine's name through the `MECH` variable.
+
 ```bash
 USER=yoda \
 MECH=tie-fighter \
@@ -47,6 +51,32 @@ GROUP=jedi-sandbox \
 KEY_FILE=resources/ssh/yoda.key \
 ./connect-to-azure-mech up
 ```
+
+In some cases, the machine of interest will not be front-facing (not connected
+to the internet through a public IP address) which will require one to connect
+through a gateway. In the next example the `TUNNEL_MECH` variable contains the 
+name of the front-facing VM that is being used to _hop_ to the machine of 
+interest, being the `REMOTE_MECH` VM. Note that the `TUNNEL_PORT` is the port 
+that we locally forward to the remote machine's SSH port., subsequently 
+allowing one to establish the connection to the remote machine through that 
+very port. The establishing of the connection looking something like 
+`ssh -i $USER@REMOTE_HOST -p $REMOTE_PORT` will be executed after setting up 
+the tunnel, allowing you to just sit back and have the script cater to your 
+needs. After disconnecting from the ssh connection, the tunnel is subsequently
+destroyed.
+
+```bash
+USER=yoda \
+TUNNEL_PORT=49152 \
+TUNNEL_MECH=starship \
+REMOTE_MECH=starfighter0 \
+./connect-to-azure-mech.sh up
+```
+
+**NOTE**: The `TUNNEL_MECH` VM must have a public IP address in order for this
+to work.
+
+<img src="http://i.giphy.com/VUw1mb0qZY9vG.gif" width="709" height="344" alt="tunnel"/>
 
 # Cheatsheet
 
