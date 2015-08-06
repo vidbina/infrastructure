@@ -84,6 +84,17 @@ ssh -i resources/ssh/try.key -f -nNT -L 8080:$GATEWAY_ADDR:8080 yoda@$GATEWAY_AD
 ssh -i resources/ssh/try.key -f -nNT -L 5050:$GATEWAY_ADDR:5050 yoda@$GATEWAY_ADDR
 ```
 
+Use the helper to make things easier :wink:
+
+```bash
+USER=yoda \
+MECH=tie-fighter \
+GROUP=jedi-sandbox \
+REMOTE_PORT=8080 \
+KEY=/resources/ssh/yoda.key \
+./tunnel-to-azure-mech.sh up
+```
+
 ## Docker Sockets
 The slave machine will need to be able to spawn docker containers on the host.
 In order to make this possible one can utilize Docker sockets.

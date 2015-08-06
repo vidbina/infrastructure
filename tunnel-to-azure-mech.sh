@@ -1,13 +1,5 @@
 #!/bin/sh
 
-if test -z $MECH; then
-  exit;
-fi
-
-if test -z $GROUP; then
-  exit;
-fi
-
 if test -z $REMOTE_PORT; then
   REMOTE_PORT=5050
 fi
@@ -35,9 +27,21 @@ if test -z $CERT_FILE; then
 fi
 
 if test "$1" == "up"; then
+  if test -z $MECH; then
+    echo "Specify MECH"
+    exit;
+  fi
+  
+  if test -z $GROUP; then
+    echo "Specify GROUP"
+    exit;
+  fi
+
   source helpers/ip_for_azure_mech.sh
   
-  echo "ssh -i $CERT_FILE -f -nNT -L $LOCAL_HOST_STR$LOCAL_PORT:$REMOTE_HOST:$REMOTE_PORT $USER@$(ip_for_azure_mech)"
+  AZURE_MECH_IP=$(ip_for_azure_mech)
+  REMOTE_HOST=$AZURE_MECH_IP
+  ssh -i $CERT_FILE -f -nNT -L $LOCAL_HOST_STR$LOCAL_PORT:$REMOTE_HOST:$REMOTE_PORT $USER@$AZURE_MECH_IP
 elif test "$1" == "down"; then
   #kill -3 $(ps aux | grep -E 'ssh.*google.' | grep -F $LOCAL_PORT:$REMOTE_HOST:$REMOTE_PORT | grep -F $USER@$TUNNEL_HOST | grep -Fv 'grep' | awk '{print $2}')
   kill -3 $(ps aux | grep -F $LOCAL_PORT:$REMOTE_HOST:$REMOTE_PORT | grep -F $USER@$(ip_for_azure_mech) | grep -Fv 'grep' | awk '{print $2}')
