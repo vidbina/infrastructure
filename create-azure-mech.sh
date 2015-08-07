@@ -35,7 +35,7 @@ if test -z $REGION; then
 fi
 
 if test -z $SIZE; then
-  SIZE="Small"
+  SIZE="Standard_A0"
 fi
 
 if test -z $USER; then
