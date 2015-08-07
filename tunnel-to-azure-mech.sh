@@ -26,25 +26,31 @@ if test -z $KEY; then
   KEY="resources/ssh/try.key"
 fi
 
-if test "$1" == "up"; then
-  if test -z $MECH; then
-    echo "Specify MECH"
-    exit;
-  fi
+function derrive_hosts() {
+  source helpers/ip_for_azure_mech.sh
   
+  if test -n $TUNNEL_MECH; then
+    MECH=$TUNNEL_MECH
+    TUNNEL_HOST=$(ip_for_azure_mech)
+  fi
+
+  if test -n $REMOTE_MECH; then
+    MECH=$REMOTE_MECH
+    REMOTE_HOST=$(private_ip_for_azure_mech)
+  fi
+}
+
+if test "$1" == "up"; then
   if test -z $GROUP; then
     echo "Specify GROUP"
     exit;
   fi
 
-  source helpers/ip_for_azure_mech.sh
-  
-  AZURE_MECH_IP=$(ip_for_azure_mech)
-  REMOTE_HOST=$AZURE_MECH_IP
-  ssh -i $KEY -f -nNT -L $LOCAL_HOST_STR$LOCAL_PORT:$REMOTE_HOST:$REMOTE_PORT $USER@$AZURE_MECH_IP
+  derrive_hosts
+  ssh -i $KEY -f -nNT -L $LOCAL_HOST_STR$LOCAL_PORT:$REMOTE_HOST:$REMOTE_PORT $USER@$TUNNEL_HOST
 elif test "$1" == "down"; then
-  #kill -3 $(ps aux | grep -E 'ssh.*google.' | grep -F $LOCAL_PORT:$REMOTE_HOST:$REMOTE_PORT | grep -F $USER@$TUNNEL_HOST | grep -Fv 'grep' | awk '{print $2}')
-  kill -3 $(ps aux | grep -F $LOCAL_PORT:$REMOTE_HOST:$REMOTE_PORT | grep -F $USER@$(ip_for_azure_mech) | grep -Fv 'grep' | awk '{print $2}')
+  derrive_hosts
+  kill -3 $(ps aux | grep -F $LOCAL_PORT:$REMOTE_HOST:$REMOTE_PORT | grep -F $USER@$TUNNEL_HOST | grep -Fv 'grep' | awk '{print $2}')
 else
-  echo "Usage: [LOCAL_PORT=?] [USER=?] [REMOTE_HOST=?] [REMOTE_PORT=?] [TUNNEL_HOST=?] [KEY=?] $0 (up|down)"
+  echo "Usage: [LOCAL_PORT=?] [USER=?] [REMOTE_HOST=? | REMOTE_MECH=?] [REMOTE_PORT=?] [TUNNEL_HOST=? | TUNNEL_MECH=?] [KEY=?] $0 (up|down)"
 fi
