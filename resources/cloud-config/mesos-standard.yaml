@@ -12,8 +12,10 @@ coreos:
     
         [Service]
         Restart=always
+        ExecStartPre=-/usr/bin/docker kill zookeeper
+        ExecStartPre=-/usr/bin/docker rm zookeeper
+        ExecStartPre=/usr/bin/docker pull garland/zookeeper
         ExecStart=/usr/bin/docker run --name zookeeper -p 2181:2181 -p 2888:2888 -p 3888:3888 garland/zookeeper
-        ExecStop=/usr/bin/docker rm zookeeper
     - name: mesos-master.service
       command: start
       content: |
@@ -24,8 +26,10 @@ coreos:
   
         [Service]
         Restart=always
+        ExecStartPre=-/usr/bin/docker kill mesos-master
+        ExecStartPre=-/usr/bin/docker rm mesos-master
+        ExecStartPre=/usr/bin/docker pull garland/mesosphere-docker-mesos-master
         ExecStart=/usr/bin/docker run --name mesos-master --net="host" -p 5050:5050 -e "MESOS_HOSTNAME=$private_ipv4" -e "MESOS_IP=$private_ipv4" -e "MESOS_ZK=zk://$private_ipv4:2181/mesos" -e "MESOS_PORT=5050" -e "MESOS_LOG_DIR=/var/log/mesos" -e "MESOS_QUORUM=1" -e "MESOS_REGISTRY=in_memory" -e "MESOS_WORK_DIR=/var/lib/mesos" garland/mesosphere-docker-mesos-master
-        ExecStop=/usr/bin/docker rm mesos-master
     - name: marathon.service
       command: start
       content: |
@@ -36,6 +40,9 @@ coreos:
   
         [Service]
         Restart=always
+        ExecStartPre=-/usr/bin/docker kill marathon
+        ExecStartPre=-/usr/bin/docker rm marathon
+        ExecStartPre=/usr/bin/docker pull garland/mesosphere-docker-marathon
         ExecStart=/usr/bin/docker run --name marathon -p 8080:8080 garland/mesosphere-docker-marathon --master zk://$private_ipv4:2181/mesos --zk zk://$private_ipv4:2181/marathon
         ExecStop=/usr/bin/docker rm marathon
     - name: mesos-slave.service
