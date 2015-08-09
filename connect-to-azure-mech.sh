@@ -19,22 +19,24 @@ fi
 if test "$1" == "up"; then
   source helpers/ip_for_azure_mech.sh
 
-  if test -n "$REMOTE_MECH"; then
+  if test -n "$TUNNEL_PORT"; then
+    REMOTE_MECH=$MECH
+    REMOTE_HOST=$(private_ip_for_azure_mech)
+
     MECH=$TUNNEL_MECH
     TUNNEL_HOST=$(public_ip_for_azure_mech)
-
-    MECH=$REMOTE_MECH
-    REMOTE_HOST=$(private_ip_for_azure_mech)
   
+    echo "tunneled"
     ssh -i $KEY_FILE $USER@$TUNNEL_HOST -f -nNTX -L $TUNNEL_PORT:$REMOTE_HOST:22
     ssh -i $KEY_FILE $USER@localhost -p $TUNNEL_PORT
     kill -3 $(ps aux | grep $TUNNEL_PORT:$REMOTE_HOST:22 | grep $USER@$TUNNEL_HOST | grep -Fv 'grep' | awk '{print $2}')
   else
+    echo "direct"
     REMOTE_HOST=$(public_ip_for_azure_mech)
     ssh -i $KEY_FILE $USER@$REMOTE_HOST
   fi
 elif test "$1" == "down"; then
   echo "N/A"
 else
-  echo "Usage: GROUP=? [MECH=? | [TUNNEL_MECH=? REMOTE_MECH=? TUNNEL_PORT=?]] USER=? $0 up"
+  echo "Usage: GROUP=? [MECH=? | [TUNNEL_MECH=? REMOTE_MECH=? TUNNEL_PORT=?]] USER=? KEY_FILE=? $0 up"
 fi

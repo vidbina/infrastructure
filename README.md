@@ -1,5 +1,15 @@
 # Mesos Infrastructure
 
+All the helpers in this repository expect the Azure X-plat CLI to be configured
+to run in the ARM mode. Ensure that the proper mode is selected/activated by
+running:
+
+```bash
+azure config mode arm
+```
+
+<img src="http://i.giphy.com/KWV7mrud6Dq4o.gif" width="500" height="213" alt="C3PO" />
+
 ## Create VM
 
 Create a VM and assign to it a public IP address (making it accessible from the
